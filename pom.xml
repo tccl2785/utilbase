@@ -1,0 +1,114 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>io.github.tccl2785.tools</groupId>
+    <artifactId>utilbase</artifactId>
+    <version>0.0.1</version>
+    <packaging>pom</packaging>
+
+    <name>utilbase</name>
+    <description>基础工具库聚合工程（utilbase）：加载/初始化等基础模块，供其他项目通过 Maven 中央仓库引用。</description>
+    <url>https://github.com/tccl2785/utilbase</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>tccl2785</id>
+            <name>tccl2785</name>
+            <email>54839180+tccl2785@users.noreply.github.com</email>
+            <url>https://github.com/tccl2785</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/tccl2785/utilbase.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/tccl2785/utilbase.git</developerConnection>
+        <url>https://github.com/tccl2785/utilbase</url>
+        <tag>HEAD</tag>
+    </scm>
+
+
+    <modules>
+        <!-- GitHub 公开仓库仅包含 load 模块；其余子模块保留在本地，发布时再取消注释 -->
+        <!--
+        <module>me-tools1</module>
+        <module>socket-tools</module>
+        <module>persistence</module>
+        <module>socket-server-tools</module>
+        <module>api_tools</module>
+        -->
+        <module>load</module>
+    </modules>
+
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+
+        </dependencies>
+    </dependencyManagement>
+
+
+    <profiles>
+        <!-- 发布到 Maven 中央仓库专用：仅显式 -P release 时生效，日常构建不受影响 -->
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- GPG 签名：Central 要求每个上传文件都附带 .asc 签名 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.7</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- 免交互：从 settings.xml 的 gpg.passphrase 读取口令 -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Central Portal 发布插件：打包并上传到 central.sonatype.com -->
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.12.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <!-- 需在 Central Portal 手动点 Publish 才正式上线 -->
+                            <autoPublish>false</autoPublish>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
+</project>

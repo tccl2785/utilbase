@@ -1,0 +1,33 @@
+# 构建产物
+target/
+*.class
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.iml
+.settings/
+.classpath
+.project
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# Trae AI 工具目录
+.trae/
+
+# 本地私有配置（含密钥/Token，禁止提交）
+.config/
+*.local
+*.secret
+
+# 未发布到中央仓库的子模块（本地保留，不推送到公开仓库）
+/api_tools/
+/me-tools1/
+/persistence/
+/socket-server-tools/
+/socket-tools/
+
+# 内部提示词文档，不公开
+load/提示词/

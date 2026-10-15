@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.tccl2785.tools</groupId>
+        <artifactId>utilbase</artifactId>
+        <version>0.0.1</version>
+    </parent>
+
+    <artifactId>load</artifactId>
+    <version>0.0.1</version>
+
+    <name>load</name>
+    <description>utilbase 基础工具库中的加载/初始化模块，供其他项目通过 Maven 中央仓库引用。</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 【改造点1】统一使用 2.0.21 (或者你想要的 2.0.0)，确保所有依赖和插件版本一致 -->
+        <kotlin.version>2.0.0</kotlin.version>
+
+        <!-- 【改造点2】全局统一定义 Java 17，移除冲突的 1.8 配置 -->
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.7</version>
+        </dependency>
+
+        <!-- 【提醒】请核实此版本号，Spring Boot 3.5.16 目前并不存在 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>3.2.5</version> <!-- 建议修改为真实存在的版本 -->
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 【改造点1】使用 ${kotlin.version} -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.9.0</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- ================= 测试依赖 ================= -->
+        <!-- 【改造点1】使用 ${kotlin.version} -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-test-junit5</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.0</version>
+            <scope>test</scope>
+            <!-- 【改造点6】去掉了冗余的 optional -->
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-test</artifactId>
+            <version>1.9.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- 【改造点5】全局声明唯一的源码和测试源码目录，不再区分 java/kotlin -->
+        <!-- 你可以直接把 .kt 和 .java 都放在 src/main/java 下面 -->
+        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+
+        <plugins>
+            <!-- 源码打包插件（保持不变，非常好） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Kotlin 编译器插件 -->
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <!-- 【改造点4】绑定到 process-sources，确保在 java 编译之前执行 -->
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <!-- 【改造点4】绑定到 process-test-sources -->
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- 因为上面已经配置了全局 sourceDirectory，这里无需再写 sourceDirs -->
+                    <args>
+                        <arg>-Xjvm-default=all</arg>
+                    </args>
+                    <!-- jvmTarget 已经在 properties 中通过 kotlin.compiler.jvmTarget 指定，此处可省 -->
+                </configuration>
+            </plugin>
+
+            <!-- Java 编译器插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <!-- 【改造点4】彻底禁用默认的主代码和测试代码编译 -->
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <!-- 重新绑定 Java 编译到 compile 阶段，此时 Kotlin 已经编译完了 -->
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <!-- 同理处理测试代码的编译顺序 -->
+                    <execution>
+                        <id>java-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- source 和 target 已经在 properties 中声明，会自动被读取 -->
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- 占位 javadoc jar：满足 Central 对 -javadoc.jar 的要求（Kotlin/Java 混合模块不做真实 javadoc） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                            <classesDirectory>${project.basedir}/src/main/javadoc</classesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 测试插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <!-- 【提醒】你设置了 skip=true，打包时不会运行单元测试。
+                         作为工具库，建议写好单测并将其改为 false，或者使用 mvn install -DskipTests 临时跳过 -->
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>
